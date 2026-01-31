@@ -1,0 +1,97 @@
+services:
+  jellyfin:
+    container_name: jellyfin
+    network_mode: host
+    devices:
+     - /dev/dri:/dev/dri
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - type: bind
+        source: /media/jellyfin
+        target: /media
+    image: jellyfin/jellyfin
+    restart: unless-stopped
+    environment:
+      - JELLYFIN_PublishedServerUrl=
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  qbittorrent:
+    container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Warsaw
+      - WEBUI_PORT=7080
+      - TORRENTING_PORT=6881
+    volumes:
+      - qbittorrent-appdata:/config
+      - /media/jellyfin/downloads:/downloads
+    ports:
+      - 7080:7080
+      - 6881:6881
+      - 6881:6881/udp
+    image: lscr.io/linuxserver/qbittorrent:latest
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=
+      - PORT=5055
+    ports:
+      - 5055:5055
+    volumes:
+      - jellyseerr-config:/app/config
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - sonarr-config:/config
+      - sonarr-data:/data
+    ports:
+      - 8989:8989
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - radarr-config:/config
+      - radarr-data:/data
+    ports:
+      - 7878:7878
+
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:
+  qbittorrent-appdata:
+  jellyseerr-config:
+  sonarr-data:
+  sonarr-config:
+  radarr-data:
+  radarr-config:
+  autobrr-config:
