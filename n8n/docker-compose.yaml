@@ -5,12 +5,11 @@ services:
       - 5678:5678
     volumes:
       - n8n_data:/home/node/.n8n
-      - n8n_ssh:/home/node/.ssh
-    env_file:
-      - stack.env
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false
+      - N8N_SECURE_COOKIE=false
     image: docker.n8n.io/n8nio/n8n
     restart: always
-
 volumes:
   n8n_data:
-  n8n_ssh:
+

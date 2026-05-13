@@ -1,0 +1,43 @@
+services:
+  romm:
+    container_name: romm
+    ports:
+      - 8080:8080
+    volumes:
+      - romm_resources:/romm/resources
+      - romm_redis_data:/redis-data
+      - /media/romm/library:/romm/library
+      - /media/romm/assets:/romm/assets
+      - /media/romm/config:/romm/config
+    env_file:
+      - .env
+    depends_on:
+      romm-db:
+        condition: service_healthy
+        restart: true
+    restart: unless-stopped
+    image: rommapp/romm:latest
+  romm-db:
+    container_name: romm-db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    env_file:
+      - .env
+    healthcheck:
+      test:
+        - CMD
+        - healthcheck.sh
+        - --connect
+        - --innodb_initialized
+      start_period: 30s
+      start_interval: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    image: mariadb:latest
+volumes:
+  mysql_data:
+  romm_resources:
+  romm_redis_data:
+

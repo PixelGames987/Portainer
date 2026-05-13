@@ -1,0 +1,72 @@
+services:
+  open-webui:
+    container_name: open-webui
+    ports:
+      - 3000:8080
+    volumes:
+      - open-webui:/app/backend/data
+    env_file:
+      - .env
+    networks:
+      - openwebui
+    restart: always
+    image: ghcr.io/open-webui/open-webui:main
+  pipelines:
+    container_name: pipelines
+    volumes:
+      - open-webui-pipelines:/app/pipelines
+    env_file:
+      - .env
+    networks:
+      - openwebui
+    restart: unless-stopped
+    image: ghcr.io/open-webui/pipelines:main
+  copilot-api:
+    container_name: copilot-api
+    volumes:
+      - copilot_data:/data
+    networks:
+      - openwebui
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+    restart: unless-stopped
+    pull_policy: never
+    image: copilot-api
+  open-terminal:
+    container_name: open-terminal
+    volumes:
+      - open-terminal:/home/user
+    env_file:
+      - .env
+    networks:
+      - openwebui
+    restart: unless-stopped
+    image: ghcr.io/open-webui/open-terminal
+  playwright-mcp:
+    container_name: playwright-mcp-server
+    image: mcr.microsoft.com/playwright/mcp:latest
+    network_mode: container:open-webui
+    command:
+      - --port
+      - "8931"
+      - --host
+      - 0.0.0.0
+      - --allowed-hosts
+      - "*"
+      - --isolated
+    environment:
+      - PLAYWRIGHT_MCP_PORT=8931
+      - PLAYWRIGHT_MCP_HOST=0.0.0.0
+    init: true
+    ipc: host
+    shm_size: 1gb
+    restart: always
+volumes:
+  open-webui:
+  open-webui-pipelines:
+  copilot_data:
+  open-terminal:
+networks:
+  openwebui:
+

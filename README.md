@@ -1,2 +1,2 @@
-# Portainer
-My Portainer Docker stacks
+# Stacks
+Docker stacks I run in my homelab

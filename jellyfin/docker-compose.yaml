@@ -1,0 +1,40 @@
+services:
+  jellyfin:
+    container_name: jellyfin
+    ports:
+      - 8096:8096
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - type: bind
+        source: /media/jellyfin
+        target: /media/jellyfin
+    devices:
+      - /dev/dri:/dev/dri
+    environment:
+      - TZ=Europe/Warsaw
+      - JELLYFIN_PublishedServerUrl=
+    restart: unless-stopped
+    image: lscr.io/linuxserver/jellyfin:latest
+  qbittorrent:
+    container_name: qbittorrent
+    ports:
+      - 7080:7080
+      - 6881:6881
+      - 6881:6881/udp
+    volumes:
+      - qbittorrent-appdata:/config
+      - /media/jellyfin/downloads:/downloads
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Warsaw
+      - WEBUI_PORT=7080
+      - TORRENTING_PORT=6881
+    restart: unless-stopped
+    image: lscr.io/linuxserver/qbittorrent:latest
+volumes:
+  jellyfin-config: null
+  jellyfin-cache: null
+  qbittorrent-appdata: null
+
